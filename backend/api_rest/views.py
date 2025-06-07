@@ -9,7 +9,7 @@ from .serializers import AtivoSerializer, UsuarioSerializer
 from rest_framework import generics
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
-
+from django.contrib.auth import get_user_model
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -29,7 +29,17 @@ class UsuarioCreateView(APIView):
 class UsuarioListView(generics.ListAPIView):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
-    permission_classes = [IsAuthenticated]  
+    permission_classes = [IsAuthenticated]
+
+
+User = get_user_model()
+
+@api_view(['GET'])
+@permission_classes([AllowAny])  # Permitido para não autenticados também
+def checar_email(request):
+    email = request.GET.get('email', '').lower()
+    existe = User.objects.filter(email=email).exists()
+    return Response({'existe': existe})  
 
 
 @api_view(['GET'])
@@ -110,3 +120,31 @@ def deletar_ativo(request, pk):
     ativo = get_object_or_404(Ativo, pk=pk, usuario=request.user)
     ativo.delete()
     return Response({'mensagem': 'Ativo deletado com sucesso.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def solicitar_resgate(request, pk):
+    """
+    Calcula o valor de resgate de um ativo específico, se ele pertence ao usuário logado.
+    Query param opcional: data_resgate=YYYY-MM-DD
+    """
+    from datetime import date
+
+    ativo = get_object_or_404(Ativo, pk=pk, usuario=request.user)
+
+    data_resgate_str = request.GET.get('data_resgate')
+    try:
+        data_resgate = date.fromisoformat(data_resgate_str) if data_resgate_str else None
+    except ValueError:
+        return Response({'erro': 'Data de resgate inválida. Use o formato YYYY-MM-DD.'},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    resultado = ativo.calcular_resgate(data_resgate)
+
+    if resultado is None:
+        return Response({'erro': 'Não foi possível calcular o resgate. Verifique os dados do ativo.'},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(resultado)
+

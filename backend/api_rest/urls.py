@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import UsuarioCreateView, UsuarioListView, CustomTokenObtainPairView
+from .views import UsuarioCreateView, UsuarioListView, CustomTokenObtainPairView, checar_email
 
 urlpatterns = [
     path('usuarios/', UsuarioCreateView.as_view(), name='usuario-create'),
@@ -12,4 +12,6 @@ urlpatterns = [
     path('ativos/criar/', views.criar_ativo, name='criar_ativo'),
     path('ativos/atualizar/<int:pk>/', views.atualizar_ativo, name='atualizar_ativo'),
     path('ativos/deletar/<int:pk>/', views.deletar_ativo, name='deletar_ativo'),
+    path('ativos/<int:pk>/solicitar_resgate/', views.solicitar_resgate, name='solicitar_resgate'),
+    path('checar-email/', checar_email, name='checar_email'),
 ]

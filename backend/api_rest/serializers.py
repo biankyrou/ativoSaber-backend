@@ -9,20 +9,25 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token['email'] = user.email
         token['nome'] = user.nome  
-
         return token
 
 class AtivoSerializer(serializers.ModelSerializer):
     rendimento_esperado = serializers.SerializerMethodField()
+    valor_investido = serializers.ReadOnlyField()
 
     class Meta:
         model = Ativo
         fields = '__all__'
-        read_only_fields = ['usuario'] 
+        read_only_fields = ['usuario']
 
     def get_rendimento_esperado(self, obj):
-        return obj.rendimento_esperado
-
+        resultado = obj.rendimento_esperado()
+        if resultado is None:
+            return None
+        return float(resultado)
+    
+    def get_valor_investido(self, obj):
+        return float(obj.valor_investido)
 
 class AtivoNomeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,5 +47,3 @@ class UsuarioSerializer(serializers.ModelSerializer):
             password=validated_data['password']
         )
         return user
-
-
