@@ -142,6 +142,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://localhost:3000",
     "https://ativosaber.vercel.app",
+    "https://ativosaber-k9dhcoabp-biankyrous-projects.vercel.app",
 ]
 
 CORS_ALLOW_HEADERS = [
